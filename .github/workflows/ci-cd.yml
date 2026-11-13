@@ -18,3 +18,24 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      HEROKU_APP_NAME: mazuuur9672-express-lab6
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Heroku CLI
+        run: npm install --global heroku
+
+      - name: Build, push, and release container
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          heroku stack:set container --app "$HEROKU_APP_NAME"
+          printf '%s' "$HEROKU_API_KEY" | docker login registry.heroku.com --username _ --password-stdin
+          image="registry.heroku.com/$HEROKU_APP_NAME/web"
+          docker build --platform linux/amd64 -t "$image" .
+          docker push "$image"
+          heroku container:release web --app "$HEROKU_APP_NAME"
