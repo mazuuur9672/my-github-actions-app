@@ -36,6 +36,6 @@ jobs:
           heroku stack:set container --app "$HEROKU_APP_NAME"
           printf '%s' "$HEROKU_API_KEY" | docker login registry.heroku.com --username _ --password-stdin
           image="registry.heroku.com/$HEROKU_APP_NAME/web"
-          docker build --platform linux/amd64 -t "$image" .
-          docker push "$image"
+          docker buildx build --platform linux/amd64 --provenance=false --sbom=false \
+          --output type=registry,oci-mediatypes=false -t "$image" .
           heroku container:release web --app "$HEROKU_APP_NAME"
